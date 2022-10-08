@@ -6,7 +6,7 @@
 -- where a value with no key simply has an implicit numeric key
 local config = {
 
-  -- Configure AstroNvim updates
+  -- Configure AdapstroNvim updates
   updater = {
     remote = "origin", -- remote to use
     channel = "nightly", -- "stable" or "nightly"
@@ -182,36 +182,38 @@ local config = {
   -- Configure plugins
   plugins = {
     init = {
-      -- You can disable default plugins as follows:
-      -- ["goolord/alpha-nvim"] = { disable = true },
-
-      -- You can also add new plugins here as well:
-      -- Add plugins, the packer syntax without the "use"
-      -- { "andweeb/presence.nvim" },
-      -- {
-      --   "ray-x/lsp_signature.nvim",
-      --   event = "BufRead",
-      --   config = function()
-      --     require("lsp_signature").setup()
-      --   end,
-      -- },
-      { 'jacoborus/tender.vim' },
-      { "iamcco/markdown-preview.nvim",
+      { "jacoborus/tender.vim" },
+      {
+        "iamcco/markdown-preview.nvim",
         run = "cd app && npm install",
-        setup = function()
-          vim.g.mkdp_filetypes = { "markdown" }
-        end,
+        setup = function() vim.g.mkdp_filetypes = { "markdown" } end,
         ft = { "markdown" },
       },
-      ['mfussenegger/nvim-dap'] = require("user.plugins.dap"),
+      {
+        "mfussenegger/nvim-dap",
+        config = function()
+          local dap = require "dap"
+          local HOME = os.getenv "HOME"
+          local ADAPTER_PATH = HOME .. "/.local/share/nvim/mason/bin"
 
-      -- We also support a key value style plugin definition similar to NvChad:
-      -- ["ray-x/lsp_signature.nvim"] = {
-      --   event = "BufRead",
-      --   config = function()
-      --     require("lsp_signature").setup()
-      --   end,
-      -- },
+          dap.adapters.coreclr = {
+            type = "executable",
+            command = ADAPTER_PATH .. "/netcoredebug",
+            args = { "--interpreter=vscode" },
+          }
+
+          dap.configurations.cs = {
+            {
+              type = "coreclr",
+              name = "launch - netcoredbg",
+              request = "launch",
+              -- program = function() return vim.fn.input("Path to DLL > ", vim.fn.getcwd() .. "/bin/Debug/", "file") end,
+            },
+          }
+        end,
+      },
+      { "chriskempson/base16-vim" },
+      { "rcarriga/nvim-dap-ui", requires = { "mfussenegger/nvim-dap" } },
     },
     -- All other entries override the require("<key>").setup({...}) call for default plugins
     ["null-ls"] = function(config) -- overrides `require("null-ls").setup(config)`
@@ -326,6 +328,5 @@ local config = {
 }
 
 vim.cmd "set clipboard=unnamedplus"
-
 
 return config
